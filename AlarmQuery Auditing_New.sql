@@ -153,8 +153,12 @@ FROM HelixReportstage.[dbo].HadoopactiveAlarms
 where source = 'HSRIXSERV5' and unit = 'V3N' and bed = 'V3N305' and channel = '291' and text = 'SpO2   Low Perf'
 order by auditid
 
+
+select * from HelixReport.[dbo].HadoopAlarmEvents order by alarmkey
+
+
 --Insert into Alarm Ended and ActiveAlarm
-SELECT auditid,rank,loopid, alarmended,dateadd(s, cast([alarm_ts] as int), '19700101')	,
+SELECT ImportDay,auditid,rank,loopid, alarmended,dateadd(s, cast([alarm_ts] as int), '19700101')	,
 Duration = datediff(s,dateadd(s, cast([alarm_ts] as int), '19700101'),
 LEAD(dateadd(s, cast([alarm_ts] as int), '19700101')) OVER (partition BY Source, Unit, Bed, Channel,Text 
 Order by dateadd(s, cast([alarm_ts] as int), '19700101'))) ,
@@ -173,32 +177,47 @@ SELECT Eventcount, alarmkey,AlarmDurationSeconds, [alarmsource],[alarmunit],Alar
 FROM HelixReport.[dbo].HadoopAlarmEvents
 where alarmsource = 'PICSERV05' and alarmunit = 'CTICU' and alarmbedlabel = 'CT12' and alarmchannel = '290' and AlarmDescription = 'Rem.AlarmDev.Malf.'
 order by alarmkey
-
-
-
-
-
-SELECT Eventcount,AlarmEnded,rank, auditid,eventcount,alarmended	,Duration ,[source],[unit],[bed],[channel],[text],AlarmEventStartTime,AlarmEventEndTime ,HadoopAlarmEndFileName,HadoopOrigFileName  
-FROM HelixReportstage.[dbo].HadoopEndedAlarms 
-where source = 'PICSERV02' and unit = '4NN' and bed = 'NN1-08' and channel = '291' and text = 'ARRHYTHMIA OFF'
+SELECT Eventcount,AlarmEnded,rank, auditid,eventcount,alarmended	,Duration, activealarmduration,[source],[unit],[bed],[channel],[text],AlarmEventStartTime,HadoopAlarmStartFileName ,HadoopAlarmEndFileName,HadoopOrigFileName  
+FROM HelixReportstage.[dbo].HadoopactiveAlarms 
+where source = 'PICSERV05' and unit = 'CTICU' and bed = 'CT12' and channel = '290' and text = 'Rem.AlarmDev.Malf.'
 order by auditid
 
-select * from HelixReportstage.[dbo].HadoopactiveAlarms25 where source = 'PICSERV02' and unit = '4NN' and bed = 'NN1-08' and channel = '291' and text = 'ARRHYTHMIA OFF'
-select * from HelixReportstage.[dbo].HadoopactiveAlarms26 where source = 'PICSERV02' and unit = '4NN' and bed = 'NN1-08' and channel = '291' and text = 'ARRHYTHMIA OFF'
 SELECT Eventcount,AlarmEnded,rank, auditid,eventcount,alarmended	,Duration, activealarmduration,[source],[unit],[bed],[channel],[text],AlarmEventStartTime,HadoopAlarmStartFileName ,HadoopAlarmEndFileName,HadoopOrigFileName  
 FROM HelixReportstage.[dbo].HadoopactiveAlarms 
 where alarmsource = 'PICSERV05' and alarmunit = 'CTICU' and alarmbedlabel = 'CT12' and alarmchannel = '290' and AlarmDescription = 'Rem.AlarmDev.Malf.'
 order by auditid
 
+--Insert into Alarm Ended and ActiveAlarm
+SELECT ImportDay,auditid,rank,loopid, alarmended,dateadd(s, cast([alarm_ts] as int), '19700101')	,
+Duration = datediff(s,dateadd(s, cast([alarm_ts] as int), '19700101'),
+LEAD(dateadd(s, cast([alarm_ts] as int), '19700101')) OVER (partition BY Source, Unit, Bed, Channel,Text 
+Order by dateadd(s, cast([alarm_ts] as int), '19700101'))) ,
+PreviousDuration=lag(Duration)OVER (partition BY Source, Unit, Bed, Channel,Text 
+Order by dateadd(s, cast([alarm_ts] as int), '19700101')) ,
+NextDuration=Lead(Duration)OVER (partition BY Source, Unit, Bed, Channel,Text 
+Order by dateadd(s, cast([alarm_ts] as int), '19700101')) ,
+[source],[unit],[bed],[channel],[text],[filename] 
+FROM (select 'Day25' ImportDay,* from HelixReportstage.[dbo].HadoopRawAlarmsStage25 union all  
+select 'Day26'ImportDay,* from HelixReportstage.[dbo].HadoopRawAlarmsStage26 union all
+select 'Day27'ImportDay,* from HelixReportstage.[dbo].HadoopRawAlarmsStage27) a
+where source = 'PICSERV02' and unit = '4NN' and bed = 'NN8-03' and channel = '285' and text = 'Vent Fib/Tach'
+order by source,unit,bed,channel,text,dateadd(s, cast([alarm_ts] as int), '19700101')
+
+SELECT Eventcount, alarmkey,AlarmDurationSeconds, [alarmsource],[alarmunit],AlarmBedLabel,AlarmChannel,AlarmDescription,AlarmEventStartTime,AlarmEventEndTime,HadoopAlarmStartFileName ,HadoopAlarmEndFileName 
+FROM HelixReport.[dbo].HadoopAlarmEvents
+where alarmsource = 'PICSERV02' and alarmunit = '4nn' and alarmbedlabel = 'NN8-03' and alarmchannel = '285' and AlarmDescription = 'Vent Fib/Tach'
+order by alarmkey
+SELECT Eventcount,AlarmEnded,rank, auditid,eventcount,alarmended	,Duration, activealarmduration,[source],[unit],[bed],[channel],[text],AlarmEventStartTime,HadoopAlarmStartFileName ,HadoopAlarmEndFileName,HadoopOrigFileName  
+FROM HelixReportstage.[dbo].HadoopactiveAlarms 
+where source = 'PICSERV02' and unit = '4NN' and bed = 'NN8-03' and channel = '285' and text = 'Vent Fib/Tach'
+order by auditid
 
 
 
-
- 
+ select * from HelixReport.[dbo].HadoopAlarmEvents order by alarmkey
 select count(*) from HelixReportstage.[dbo].HadoopRawAlarmsStage25 
 select count(*) from HelixReportstage.[dbo].HadoopRawAlarmsStage26 
 select count(*) from HelixReportstage.[dbo].HadoopRawAlarmsStage27
 select sum(eventcount) from  HelixReportstage.[dbo].HadoopEndedAlarms 
 select sum(eventcount) from  HelixReportstage.[dbo].HadoopactiveAlarms 
 
-select * into HelixReportstage.[dbo].HadoopRawAlarmsStage27 from HelixReportstage.[dbo].HadoopRawAlarmsStage

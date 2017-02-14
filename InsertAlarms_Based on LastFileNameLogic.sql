@@ -64,7 +64,7 @@ GO
 
 --Get Clarity Bed Transfer records
 
---truncate table HelixReport.[dbo].[Hadoop_BedTransfers_Pivoted]
+truncate table HelixReport.[dbo].[Hadoop_BedTransfers_Pivoted]
 
 INSERT INTO HelixReport.[dbo].[Hadoop_BedTransfers_Pivoted]
            ([PAT_MRN_ID]
@@ -142,14 +142,10 @@ DECLARE    @counter			INT
 Set @Counter = 0
 Set @max = 0
 
-
-
 		Begin
 		    IF OBJECT_ID('tempdb..#MyTable', 'U') IS NOT NULL
 		     DROP TABLE #MyTable;
-
-		
-		
+	
 			SELECT [AuditId]
 				  ,ROW_NUMBER() OVER(order by source,unit,bed,channel,text,dateadd(s, cast([alarm_ts] as int), '19700101'))  Loopid
 				  ,[Rank]
@@ -206,17 +202,17 @@ Set @max = 0
 
 
 
-					WHILE @counter <= @max
+WHILE @counter <= @max
 					BEGIN
 							
-							Begin
+							
     							SELECT 
 									@AuditId =Auditid,@Rank=Rank, @source=Source ,@unit=Unit ,@bed=Bed ,@channel=Channel ,@Duration=Duration ,@ActiveAlarmDuration = ActiveAlarmDuration,@text=Text ,
 									@msh_ts=msh_ts ,@alarm_ts=alarm_ts ,@msg_id=msg_id ,@AlarmEventStartTime= AlarmEventStartTime ,@HadoopAlarmStartFileName = HadoopAlarmStartFileName, @HadoopOrigFileName=HadoopOrigFileName ,@DateInserted=DateInserted ,@AlarmEnded=AlarmEnded,
 									@PreviousDuration = isnull(PreviousDuration,-1),@Duration=isnull(Duration,-1), @NextDuration = isnull(NextDuration,-1), @TimeStamp = [timestamp],@EventCount = EventCount
 								FROM #MyTable
 								WHERE Loopid = @counter
-							End
+							
 
 
 							If @AlarmEnded = 1 
@@ -382,7 +378,7 @@ InsertAlarmThatIsStillActive:
 								NextRecord:
 								SET @counter = @counter + 1
 
-					END
+END
 
 
 
@@ -479,4 +475,4 @@ left outer join
 on
 	a.[AlarmEventStartTime] >= d.transfertime and a.[AlarmEventStartTime] < d.nextvalue and c.ClaritybedLabel = d.bed_label  
 
-
+--where	source = 'PICSERV05' and unit = 'CTICU' and bed = 'CT14' and channel = '286' and text = 'ABPs 56 < 90'
