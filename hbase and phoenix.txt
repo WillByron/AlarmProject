@@ -1,0 +1,17 @@
+Copy the Files to /will under Root using WINSCP  (Connect via WINSCP as 127.0.0.1 and PORT 2222)
+
+1.  Log into your Sand box w/Putty
+2.  ./start_hbase.sh
+3.  cd /usr/hdp/current/phoenix-client/bin
+4.  ./psql.py -t ALARMS.MAP_CATEGORIES ~/will/map_categories.sql 
+5.  ./psql.py -t ALARMS.MAP_CATEGORIES localhost ~/will/map_categories.csv
+6.  ./psql.py -t ALARMS.ALARM_CATEGORIES ~/will/alarm_categories.sql ~/will/alarm_category.csv
+7.  ./psql.py -t ALARMS.ALARM_EVENTS -d'|' ~/will/alarm_events.sql ~/will/alarm_events.csv
+
+Now all data is Loaded.  to log into Pheonix using the command line:
+
+cd /usr/hdp/current/phoenix-client/bin
+./sqlline.py localhost
+!tables
+!columns ALARMS.MAP_CATEGORIES
+select * from ALARMS.MAPCATEGORIES;

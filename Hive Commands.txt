@@ -1,0 +1,116 @@
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.exec.max.dynamic.partitions.pernode=1000;
+drop table hadoop_alarm_events_temp;
+drop table hadoop_alarm_events;
+
+CREATE EXTERNAL TABLE IF NOT EXISTS default.hadoop_alarm_events_temp(
+       AlarmKey BIGINT
+       ,AlarmSource STRING
+      ,AlarmDateTime TIMESTAMP
+ 
+      ,AlarmUnit STRING
+      ,AlarmBedLabel STRING
+      ,AlarmChannel STRING
+      ,AlarmDescription STRING
+      ,AlarmDurationSeconds INT
+      ,AlarmCategory STRING
+      ,ReportCategory STRING
+      ,PatMrnId STRING
+      ,PatEncCSNId INT
+      ,DepartmentId INT
+      ,DepartmentName STRING
+      ,ClarityRoomId STRING
+      ,ClarityRoomName STRING
+      ,ClarityRoomNumber STRING
+      ,ClarityBedId STRING
+      ,ClarityBedLabel STRING
+      ,ClarityBedTimeStart TIMESTAMP
+      ,ClarityBedTimeEnd TIMESTAMP
+      ,ClarityEventType STRING
+      ,ClarityEventId INT
+      ,Date_Inserted  TIMESTAMP
+      ,HadoopFileName STRING
+      ,AlarmMsgId STRING) 
+
+    COMMENT 'Alarm Events'
+    ROW FORMAT DELIMITED
+    FIELDS TERMINATED BY '|'
+    STORED AS TEXTFILE
+    location '/tmp/IncomingSQLData/hadoop_alarm_events_temp';
+
+
+CREATE   TABLE IF NOT EXISTS alarms.hadoop_alarm_events(
+        AlarmKey BIGINT
+      ,AlarmSource STRING
+      ,AlarmDateTime TIMESTAMP
+      ,AlarmUnit STRING
+      ,AlarmBedLabel STRING
+      ,AlarmChannel STRING
+      ,AlarmDescription STRING
+      ,AlarmDurationSeconds INT
+      ,AlarmCategory STRING
+      ,ReportCategory STRING
+      ,PatMrnId STRING
+      ,PatEncCSNId INT
+      ,DepartmentId INT
+      ,DepartmentName STRING
+      ,ClarityRoomId STRING
+      ,ClarityRoomName STRING
+      ,ClarityRoomNumber STRING
+      ,ClarityBedId STRING
+      ,ClarityBedLabel STRING
+      ,ClarityBedTimeStart TIMESTAMP
+      ,ClarityBedTimeEnd TIMESTAMP
+      ,ClarityEventType STRING
+      ,ClarityEventId INT
+      ,Date_Inserted  TIMESTAMP
+      ,HadoopFileName STRING
+      ,AlarmMsgId STRING)    
+PARTITIONED BY (year int, month INT)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY '|'
+STORED AS ORC 
+location '/data/sqldata/hadoop_alarm_events'
+##  not using too many errors   tblproperties ("orc.compress"="snappy");
+
+hive;
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.mapred.mode=nonstrict;
+set hive.exec.max.dynamic.partitions.pernode=1000;
+
+Insert into Table alarms.hadoop_alarm_events 
+PARTITION(year,month)
+Select AlarmKey 
+      ,AlarmSource 
+      ,AlarmDateTime 
+      ,AlarmUnit 
+      ,AlarmBedLabel 
+      ,AlarmChannel 
+      ,AlarmDescription 
+      ,AlarmDurationSeconds 
+      ,AlarmCategory 
+      ,ReportCategory 
+      ,PatMrnId 
+      ,PatEncCSNId 
+      ,DepartmentId 
+      ,DepartmentName 
+      ,ClarityRoomId 
+      ,ClarityRoomName 
+      ,ClarityRoomNumber 
+      ,ClarityBedId 
+      ,ClarityBedLabel 
+      ,ClarityBedTimeStart 
+      ,ClarityBedTimeEnd 
+      ,ClarityEventType 
+      ,ClarityEventId 
+      ,Date_Inserted  
+      ,HadoopFileName 
+      ,AlarmMsgId 
+      ,year(AlarmDateTime),
+      month(AlarmDateTime)
+from default.hadoop_alarm_events_temp;
+
+
+--select * from alarms.alarm_events limit 100;
